@@ -2,6 +2,7 @@
 import threading
 import time
 import sys
+import logging
 
 class MonitoringThread(threading.Thread):
 
@@ -12,12 +13,20 @@ class MonitoringThread(threading.Thread):
         
     def run(self):
         self.begin_time = time.time()
-        while self.live_recorder.downloadFlag :
+        time_limit = self.live_recorder.time_limit
+        while self.live_recorder.downloadFlag:
             time.sleep(10)
             self.current_time = time.time()
-            print("当前已经录制了%s, 录制文件大小为%s"%(\
+            if self.current_time - self.begin_time > time_limit:
+                self.live_recorder.downloadFlag = False
+                print('Max time limit exceed. Stopping.')
+                logging.info('Max time limit exceed. Stopping.')
+            message = "当前已经录制了%s, 录制文件大小为%s"%(\
                         self.formatTime(self.current_time - self.begin_time),\
-                        self.formatSize(self.live_recorder.downloaded)))
+                        self.formatSize(self.live_recorder.downloaded))
+            logging.info(message)
+            print(message)
+        logging.info("监控线程已经结束")
         print("监控线程已经结束")
         sys.exit()
         

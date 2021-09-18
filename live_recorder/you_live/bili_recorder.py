@@ -7,7 +7,6 @@ class BiliRecorder(BaseRecorder):
     
     def __init__(self, short_id, **args):
         BaseRecorder.__init__(self, short_id, **args)
-        
     
     def getRoomInfo(self):
         roomInfo = {}

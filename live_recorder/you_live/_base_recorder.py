@@ -24,7 +24,8 @@ class BaseRecorder:
                  delete_origin_file = False, check_flv = True,\
                  file_name_format = "{name}-{shortId} 的{liver}直播{startTime}-{endTime}",\
                  time_format = "%Y%m%d_%H-%M",\
-                 debug = False):
+                 debug = False,
+                 time_limit=10):
         self.short_id = str(short_id)
         self.cookies = cookies
         self.delete_origin_file = delete_origin_file
@@ -35,7 +36,7 @@ class BaseRecorder:
         self.file_name_format = file_name_format
         self.time_format = time_format
         self.debug = debug
-        
+        self.time_limit = time_limit
         
         
         self.downloaded = 0
