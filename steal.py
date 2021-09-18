@@ -3,7 +3,7 @@ from live_recorder import you_live
 from live_recorder import version
 import logging
 import os
-import time
+from datetime import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='you-live', description="version %s : %s"%(version.__version__, version.__descriptrion__))
@@ -25,7 +25,8 @@ def parse_args():
     args = parser.parse_args()
     
     if args.logfile is None:
-        args.logfile = 'logs/temp.log'
+        ts = datetime.now()
+        args.logfile = 'logs/{}.log'.format(ts.strftime('%Y%m%d-%H%M%S'))
     if not os.path.exists(os.path.dirname(args.logfile)):
         os.makedirs(os.path.dirname(args.logfile))
 
@@ -61,6 +62,7 @@ def track_and_record(args):
                 smallest = int(key)
                 qn = key
         logging.info(f'Choosing resolution {qn}')
+        print(f'Choosing resolution {qn}')
              
         live_url = recorder.getLiveUrl(qn = qn)
         if args.debug:
