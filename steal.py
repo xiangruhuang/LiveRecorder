@@ -4,6 +4,7 @@ from live_recorder import version
 import logging
 import os
 from datetime import datetime
+import time
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='you-live', description="version %s : %s"%(version.__version__, version.__descriptrion__))
@@ -20,7 +21,8 @@ def parse_args():
     parser.add_argument("-time_format", '-tf', help="时间格式", required=False, default='%Y%m%d_%H-%M')
     parser.add_argument("-cookies", '-c', help="cookie, 当cookies_path未指定时生效", required=False, default=None)
     parser.add_argument("-cookies_path", '-cp', help="指定cookie文件位置", required=False, default=None)
-    parser.add_argument("-time_limit", '-tl', help="Max Record Time Length {10s}", required=False, default=10)
+    parser.add_argument("-time_limit", '-tl', help="Max Record Time Length {10s}", required=False, default=10, type=float)
+    parser.add_argument("-period", '-p', help="Query Cycle {120s}", required=False, default=120, type=float)
     
     args = parser.parse_args()
     
@@ -44,40 +46,47 @@ def track_and_record(args):
     params['cookies'] = args.cookies
     params['debug'] = args.debug
     params['time_limit'] = args.time_limit
-    
-    recorder = you_live.Recorder.createRecorder(args.liver, args.id, **params)
-     
-    # 获取房间信息
-    roomInfo = recorder.getRoomInfo()
-    if args.debug:
-        logging.debug(roomInfo)
-        print(roomInfo)
-     
-    # 获取如果在直播，那么录制
-    if roomInfo['live_status'] == '1':
-        logging.info(roomInfo['live_rates'])
-        smallest, qn = 100000, None
-        for key in roomInfo['live_rates']:
-            if int(key) < smallest:
-                smallest = int(key)
-                qn = key
-        logging.info(f'Choosing resolution {qn}')
-        print(f'Choosing resolution {qn}')
-             
-        live_url = recorder.getLiveUrl(qn = qn)
+   
+
+    while True:
+        recorder = you_live.Recorder.createRecorder(args.liver, args.id, **params)
+         
+        # 获取房间信息
+        roomInfo = recorder.getRoomInfo()
         if args.debug:
-            logging.debug(live_url)
-        download_thread = you_live.DownloadThread(recorder)
-        monitoring_thread = you_live.MonitoringThread(recorder)
-        
-        download_thread.start()
-        monitoring_thread.start()
-       
-        download_thread.join()
-        monitoring_thread.join()
-    else:
-        logging.error('Stream Not Available Now')
-        print('Stream Not Available Now')
+            logging.debug(roomInfo)
+            print(roomInfo)
+         
+        # 获取如果在直播，那么录制
+        if roomInfo['live_status'] == '1':
+            logging.info(roomInfo['live_rates'])
+            smallest, qn = 100000, None
+            for key in roomInfo['live_rates']:
+                if int(key) < smallest:
+                    smallest = int(key)
+                    qn = key
+            logging.info(f'Choosing resolution {qn}')
+            print(f'Choosing resolution {qn}')
+                 
+            live_url = recorder.getLiveUrl(qn = qn)
+            if args.debug:
+                logging.debug(live_url)
+            download_thread = you_live.DownloadThread(recorder)
+            monitoring_thread = you_live.MonitoringThread(recorder)
+            
+            download_thread.start()
+            monitoring_thread.start()
+           
+            download_thread.join()
+            monitoring_thread.join()
+            # convert into mp3
+            #import moviepy.editor as me
+            #clip = me.VideoFileClip('')
+            #clip.audio.write_audiofile('*.mp3')
+        else:
+            logging.error('Stream Not Available Now')
+            #print('Stream Not Available Now')
+            time.sleep(args.period)
 
 
 def main():

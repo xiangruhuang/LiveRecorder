@@ -25,6 +25,7 @@ class BaseRecorder:
                  file_name_format = "{name}-{shortId} 的{liver}直播{startTime}-{endTime}",\
                  time_format = "%Y%m%d_%H-%M",\
                  debug = False,
+                 distill=True,
                  time_limit=10):
         self.short_id = str(short_id)
         self.cookies = cookies
@@ -37,7 +38,7 @@ class BaseRecorder:
         self.time_format = time_format
         self.debug = debug
         self.time_limit = time_limit
-        
+        self.distill = distill
         
         self.downloaded = 0
         self.downloadFlag = True
@@ -106,6 +107,13 @@ class BaseRecorder:
                 new_path = os.path.abspath('{}/{}.flv'.format(self.save_folder, filename))
                 os.rename(path, new_path)
                 path = new_path
+
+            if self.distill:
+                print('Converting....')
+                import moviepy.editor as me
+                clip = me.VideoFileClip(path)
+                clip.audio.write_audiofile(path.replace('.flv', '.mp3'))
+                os.remove(path)
             
             if self.check_flv:
                 print("正在校准时间戳")
